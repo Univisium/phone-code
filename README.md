@@ -1,10 +1,10 @@
-#phone-code
+# phone-code
 
 ## things you forget because smooth brained
 
 * My editor is sublime text
 
-#GITHUB
+# GITHUB
 
 cd C:\Users\user\phone-code     # ga naar de projectmap
 
@@ -13,7 +13,7 @@ git commit -m "comment"         # maak een commit
 git push                        # upload naar GitHub
 
 
-#don't forget to
+# don't forget to
 
 * have pipewire and pulse audio installed and updated
 * make every pie update git and start script on boot
