@@ -24,4 +24,5 @@ cards = [2, 3, 4, 5, 6]   # Update these when more USB cards appear
 def play_sound(card, filename):
     """Start aplay on the given ALSA card."""
     path = os.path.join(SOUND_DIR, filename)
-    cmd = ["aplay", "-D", f"plughw:{card},]()
+    cmd = ["aplay", "-D", f"plughw:{card},0", path]
+    return subprocess.Popen(cmd)
