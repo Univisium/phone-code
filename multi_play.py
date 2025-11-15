@@ -44,7 +44,7 @@ for device, filename in zip(devices, sound_files):
     print(f"Playing {filename} on {device}")
     p = play_sound(device, filename)
     processes.append(p)
-    time.sleep(0.2)
+    time.sleep(0.8)
 
 # Wait until all are finished
 for p in processes:
