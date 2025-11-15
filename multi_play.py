@@ -14,26 +14,26 @@ sound_files = [
     "5.wav"
 ]
 
-# PulseAudio sink names from `pactl list short sinks`
-sinks = [
-    "alsa_output.platform-fe00b840.mailbox.stereo-fallback",
-    "alsa_output.usb-Generic_AB13X_USB_Audio_20210926172016-00.analog-stereo",
-    "alsa_output.usb-Generic_AB13X_USB_Audio_20210926172016-00.analog-stereo.2",
-    "alsa_output.usb-Generic_AB13X_USB_Audio_20210926172016-00.analog-stereo.3",
-    "alsa_output.usb-Generic_AB13X_USB_Audio_20210926172016-00.analog-stereo.4"
+# ALSA device names from: aplay -L
+devices = [
+    "hw:2,0",
+    "hw:3,0",
+    "hw:4,0",
+    "hw:5,0",
+    "hw:6,0"
 ]
 
-def play_sound(sink, filename):
+def play_sound(device, filename):
     path = os.path.join(SOUND_DIR, filename)
-    cmd = ["paplay", "--device", sink, path]
+    cmd = ["aplay", "-D", device, path]
     return subprocess.Popen(cmd)
 
 processes = []
 
 # Start all playback
-for sink, filename in zip(sinks, sound_files):
-    print(f"Playing {filename} on {sink}")
-    p = play_sound(sink, filename)
+for device, filename in zip(devices, sound_files):
+    print(f"Playing {filename} on {device}")
+    p = play_sound(device, filename)
     processes.append(p)
     time.sleep(0.2)
 
