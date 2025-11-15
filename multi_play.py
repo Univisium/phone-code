@@ -16,11 +16,11 @@ sound_files = [
 
 # ALSA device names from: aplay -L
 devices = [
-    "hw:2,0",
-    "hw:3,0",
-    "hw:4,0",
-    "hw:5,0",
-    "hw:6,0"
+    "plughw:2,0",
+    "plughw:3,0",
+    "plughw:4,0",
+    "plughw:5,0",
+    "plughw:6,0"
 ]
 
 def play_sound(device, filename):
