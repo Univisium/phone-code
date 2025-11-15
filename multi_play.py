@@ -25,8 +25,10 @@ devices = [
 
 def play_sound(device, filename):
     path = os.path.join(SOUND_DIR, filename)
-    cmd = ["aplay", "-D", device, path]
+    cmd = ["aplay", "-D", device, "-r", "44100", "-c", "1", path]
+    print("Running:", " ".join(cmd))
     return subprocess.Popen(cmd)
+
 
 processes = []
 
