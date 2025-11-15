@@ -2,27 +2,43 @@ import os
 import subprocess
 import time
 
-# Directory containing your audio files
+# Folder with audio
 SOUND_DIR = "/home/nachtdienst/sound/fixed"
 
-# List of sound files (match these to your telephone audio)
+# Files to play
 sound_files = [
     "1.wav",
     "2.wav",
     "3.wav",
     "4.wav",
-    "5.wav",
-    # add more when your powered hub arrives:
-    # "phone5.wav",
-    # "phone6.wav",
-    # ...
+    "5.wav"
 ]
 
-# The ALSA card numbers you want to use
-cards = [2, 3, 4, 5, 6]   # Update these when more USB cards appear
+# PulseAudio sink names from `pactl list short sinks`
+sinks = [
+    "alsa_output.platform-fe00b840.mailbox.stereo-fallback",
+    "alsa_output.usb-Generic_AB13X_USB_Audio_20210926172016-00.analog-stereo",
+    "alsa_output.usb-Generic_AB13X_USB_Audio_20210926172016-00.analog-stereo.2",
+    "alsa_output.usb-Generic_AB13X_USB_Audio_20210926172016-00.analog-stereo.3",
+    "alsa_output.usb-Generic_AB13X_USB_Audio_20210926172016-00.analog-stereo.4"
+]
 
-def play_sound(card, filename):
-    """Start aplay on the given ALSA card."""
+def play_sound(sink, filename):
     path = os.path.join(SOUND_DIR, filename)
-    cmd = ["aplay", "-D", f"plughw:{card},0", path]
+    cmd = ["paplay", "--device", sink, path]
     return subprocess.Popen(cmd)
+
+processes = []
+
+# Start all playback
+for sink, filename in zip(sinks, sound_files):
+    print(f"Playing {filename} on {sink}")
+    p = play_sound(sink, filename)
+    processes.append(p)
+    time.sleep(0.2)
+
+# Wait until all are finished
+for p in processes:
+    p.wait()
+
+print("All playback finished.")
