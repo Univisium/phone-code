@@ -30,8 +30,8 @@ def play_sound(device, filename):
         "-D", device,
         "-r", "44100",
         "-c", "1",
-        "--buffer-size=8192",
-        "--period-size=2048",
+        "--buffer-size=4096",
+        "--period-size=1024",
         path
     ]
     print("Running:", " ".join(cmd))
