@@ -8,6 +8,8 @@
 
 '''bash
 cd C:\Users\user\phone-code   (get into phonecode) 
+
+git add .                     (Add the changes)
 git commit -m "comment"       (commit with comment)
 git push                      (uploads the script)
 '''
