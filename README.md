@@ -6,13 +6,12 @@
 
 #GITHUB
 
-'''bash
-cd C:\Users\user\phone-code   (get into phonecode) 
+cd C:\Users\user\phone-code     # ga naar de projectmap
 
-git add .                     (Add the changes)
-git commit -m "comment"       (commit with comment)
-git push                      (uploads the script)
-'''
+git add .                       # voeg alle wijzigingen toe
+git commit -m "comment"         # maak een commit
+git push                        # upload naar GitHub
+
 
 #don't forget to
 
