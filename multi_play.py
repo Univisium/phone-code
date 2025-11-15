@@ -3,7 +3,7 @@ import subprocess
 import time
 
 # Folder with audio
-SOUND_DIR = "/home/nachtdienst/sound/fixed"
+SOUND_DIR = "/home/nachtdienst/sound"
 
 # Files to play
 sound_files = [
