@@ -67,6 +67,9 @@ def main(delay: float = 1.0) -> None:
 
     debug_print(f"{BLUE}Starting multi playback with debug enabled{RESET}\n")
 
+    success_count = 0
+    fail_count = 0
+
     for idx, (device, filename) in enumerate(zip(DEVICES, SOUND_FILES), start=1):
 
         debug_print(f"{YELLOW}[{idx}/{len(DEVICES)}] Preparing {filename} for {device}{RESET}")
@@ -80,36 +83,39 @@ def main(delay: float = 1.0) -> None:
             for unsupported in ("--period-size", "--buffer-size")
         )
 
+        proc = Popen(cmd)
+
         processes.append(
             {
                 "device": device,
                 "filename": filename,
                 "cmd": cmd,
                 "tuning_used": tuning_used,
-                "process": Popen(cmd),
+                "process": proc,
             }
         )
+
+        # wait on this one process
+        return_code = proc.wait()
+
+        if return_code == 0:
+            success_count += 1
+        else:
+            fail_count += 1
+
+        debug_print(f"{GREEN}{success_count} OK so far{RESET}, {RED}{fail_count} failed so far{RESET}")
 
         sleep(delay)
         debug_print("")
 
     debug_print(f"{BLUE}Waiting for all playback to finish...{RESET}\n")
 
-    success_count = 0
-    fail_count = 0
 
     for proc_info in processes:
         device = proc_info["device"]
         filename = proc_info["filename"]
         process: Popen = proc_info["process"]
         tuning_used = proc_info["tuning_used"]
-
-        return_code = process.wait()
-
-        if return_code == 0:
-            success_count += 1
-        else:
-            fail_count += 1
 
         if return_code and tuning_used:
             debug_print(f"{RED}Playback on {device} for {filename} failed with {return_code}{RESET}")
@@ -133,7 +139,6 @@ def main(delay: float = 1.0) -> None:
         else:
             debug_print(f"{GREEN}Playback OK on {device} for {filename}{RESET}")
 
-    print(f"{GREEN}{success_count} played successfully{RESET}, {RED}{fail_count} failed{RESET}")
     debug_print(f"\n{GREEN}All playback attempts finished.{RESET}")
 
 
