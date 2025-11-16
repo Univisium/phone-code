@@ -117,7 +117,7 @@ def main(delay: float = 0.5):
         proc = Popen(cmd, stdout=PIPE, stderr=PIPE, text=True)
 
         # Check if it started playing
-        sleep(0.01)
+        sleep(0.1)
         initial_state = proc.poll()
 
         if initial_state is None:
