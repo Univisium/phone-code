@@ -32,7 +32,7 @@ def summarize_alsa_error(stderr: str) -> str:
 
     for line in lines:
         if "Unable to install hw params" in line:
-            return "ALSA rejected audio settings"
+            return "Unable to install hw params | device said NOPE"
         if "No such file or directory" in line:
             return "Device not found"
         if "busy" in line.lower():

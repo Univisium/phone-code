@@ -3,7 +3,6 @@
 ## Things you forget because smooth brained
 
 * Editor is Sublime Text
-* This project runs on multiple Raspberry Pi units
 
 # GitHub workflow
 
@@ -18,6 +17,7 @@ git push                        # upload to GitHub
 
 * Install and update PipeWire and PulseAudio
 * Make every Pi update the repo on boot and start the script automatically
+* lsusb -v | grep -i (add tt to get the tt)
 
 # Known bugs
 
