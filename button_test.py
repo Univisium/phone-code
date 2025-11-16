@@ -17,7 +17,7 @@ try:
                 "python3",
                 "multi_play.py",
                 "--button",
-                "--device", "plughw:4,0",
+                "--device", "plughw:3,0",
                 "--sound", "/home/nachtdienst/sound/Button.wav"
             ])
             time.sleep(0.3)  # debounce

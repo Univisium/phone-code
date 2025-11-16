@@ -164,7 +164,7 @@ if __name__ == "__main__":
     # Button mode: plays one sound and exits
     if args.button:
         play_single_sound(
-            args.device or "plughw:4,0",
+            args.device or "plughw:3,0",
             args.sound or "/home/nachtdienst/sound/Button.wav"
         )
     else:
