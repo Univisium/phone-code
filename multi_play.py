@@ -77,6 +77,10 @@ def build_command(device: str, filename: str, include_tuning=True):
     return cmd
 
 def play_single_sound(device: str, sound_path: str):
+    # Stop whatever is playing on this device
+    import os
+    os.system(f"pkill -f 'aplay -D {device}'")
+
     channels, sample_rate, fmt = wav_params(Path(sound_path))
 
     cmd = [
@@ -92,6 +96,7 @@ def play_single_sound(device: str, sound_path: str):
     print(" ".join(cmd))
 
     Popen(cmd)
+
 
 
 def main(delay: float = 0.5):
