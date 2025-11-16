@@ -32,17 +32,3 @@ Run this to check syntax without running the script:
 ```bash
 python -m py_compile multi_play.py
 ```
-
-# Optional ideas to improve later
-
-* Add logging to a file
-* Add a safe mode that tests each device automatically
-* Add a simple command line parameter to run in debug or normal mode
-
-If you want, I can also
-
-* add color to the README,
-* add diagrams,
-* add an installation section,
-* add a “how it works” explanation,
-* or turn it into a fully polished professional document.
