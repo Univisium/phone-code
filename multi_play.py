@@ -28,7 +28,7 @@ def debug_print(msg: str) -> None:
 
 def summarize_alsa_error(stderr: str) -> str:
     if not stderr:
-        return "Unknown error"
+        return "SHITTT Unknown error"
 
     lines = stderr.strip().splitlines()
 
@@ -99,7 +99,7 @@ def play_single_sound(device: str, sound_path: str):
 
 
 
-def main(delay: float = 0.5):
+def main(delay: float = 0.1):
     debug_print(f"{BLUE}Starting parallel multi playback{RESET}\n")
 
     processes = []
@@ -117,7 +117,7 @@ def main(delay: float = 0.5):
         proc = Popen(cmd, stdout=PIPE, stderr=PIPE, text=True)
 
         # Check if it started playing
-        sleep(0.2)
+        sleep(0.01)
         initial_state = proc.poll()
 
         if initial_state is None:
@@ -141,7 +141,7 @@ def main(delay: float = 0.5):
         debug_print("")
 
     # Now wait for all and count remaining results
-    debug_print(f"\n{BLUE}Waiting for all playback to finish...{RESET}\n")
+    debug_print(f"\n{BLUE}Waiting for expo to finish...{RESET}\n")
 
     for info in processes:
         device = info["device"]
