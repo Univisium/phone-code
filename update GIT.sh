@@ -10,13 +10,5 @@ cd /home/nachtdienst/phone-code || {
 
 git pull
 echo "finished pulling script UwU"
-echo
-echo
-echo
 
-echo "starting multi_play"
-python3 button_test.py
-
-echo
-read -p "Press Enter to close..."
 
