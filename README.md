@@ -1,29 +1,48 @@
-# phone-code
+# phone code
 
-## things you forget because smooth brained
+## Things you forget because smooth brained
 
-* My editor is sublime text
+* Editor is Sublime Text
+* This project runs on multiple Raspberry Pi units
 
-# GITHUB
+# GitHub workflow
 
-cd C:\Users\user\phone-code     # ga naar de projectmap
+```bash
+cd C:\Users\user\phone-code     # go to the project folder
+git add .                       # add all changes
+git commit -m "comment"         # create a commit
+git push                        # upload to GitHub
+```
 
-git add .                       # voeg alle wijzigingen toe
-git commit -m "comment"         # maak een commit
-git push                        # upload naar GitHub
+# Do not forget to
 
+* Install and update PipeWire and PulseAudio
+* Make every Pi update the repo on boot and start the script automatically
 
-# don't forget to
+# Known bugs
 
-* have pipewire and pulse audio installed and updated
-* make every pie update git and start script on boot
+* Playback only works correctly on the first three sound cards, the others show buffer issues
+* Sound cards only activate after plugging something into the jack
+* USB power dependency problems, probably solved by using a powered USB hub
 
-# bugs
+# Testing the code
 
-* only plays up to 3 then other has buffer issues
-* activate soundcard only after plugging in the jack
-* usb powerdepenency issius (might be fixed with powered usb)
+Run this to check syntax without running the script:
 
-## testing
+```bash
+python -m py_compile multi_play.py
+```
 
-Run `python -m py_compile multi_play.py` to have Python compile the file and surface any syntax errors without executing the script.
+# Optional ideas to improve later
+
+* Add logging to a file
+* Add a safe mode that tests each device automatically
+* Add a simple command line parameter to run in debug or normal mode
+
+If you want, I can also
+
+* add color to the README,
+* add diagrams,
+* add an installation section,
+* add a “how it works” explanation,
+* or turn it into a fully polished professional document.
