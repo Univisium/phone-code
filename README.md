@@ -23,3 +23,7 @@ git push                        # upload naar GitHub
 * only plays up to 3 then other has buffer issues
 * activate soundcard only after plugging in the jack
 * usb powerdepenency issius (might be fixed with powered usb)
+
+## testing
+
+Run `python -m py_compile multi_play.py` to have Python compile the file and surface any syntax errors without executing the script. If the command succeeds there will be no output and you return to the shell prompt; any syntax mistake will be printed as an error so you can fix it and re-run the command.

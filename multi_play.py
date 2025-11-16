@@ -1,53 +1,53 @@
-import os
-import subprocess
-import time
+from pathlib import Path
+from subprocess import Popen
+from time import sleep
 
-# Folder with audio
-SOUND_DIR = "/home/nachtdienst/sound/fixed3"
+SOUND_DIR = Path("/home/nachtdienst/sound/fixed3")
+SOUND_FILES = ["1.wav", "2.wav", "3.wav", "4.wav", "5.wav"]
+DEVICES = ["plughw:2,0", "plughw:3,0", "plughw:4,0", "plughw:5,0", "plughw:6,0"]
 
-# Files to play
-sound_files = [
-    "1.wav",
-    "2.wav",
-    "3.wav",
-    "4.wav",
-    "5.wav"
-]
+SAMPLE_RATE = 44_100
+CHANNELS = 1
+FORMAT = "S16_LE"
+PERIOD_SIZE = 1024
+BUFFER_SIZE = 4096
 
-# ALSA device names from: aplay -L
-devices = [
-    "plughw:2,0",
-    "plughw:3,0",
-    "plughw:4,0",
-    "plughw:5,0",
-    "plughw:6,0"
-]
 
-def play_sound(device, filename):
-    path = os.path.join(SOUND_DIR, filename)
-    cmd = [
+def build_command(device: str, filename: str) -> list[str]:
+    return [
         "aplay",
-        "-D", device,
-        "-r", "44100",
-        "-c", "1",
-        "--period-size=512",
-        "--buffer-size=2048",
-        path
+        "-D",
+        device,
+        "-f",
+        FORMAT,
+        "-r",
+        str(SAMPLE_RATE),
+        "-c",
+        str(CHANNELS),
+        "--disable-resample",
+        "--disable-format",
+        f"--period-size={PERIOD_SIZE}",
+        f"--buffer-size={BUFFER_SIZE}",
+        str(SOUND_DIR / filename),
     ]
-    print("Running:", " ".join(cmd))
-    return subprocess.Popen(cmd)
 
-processes = []
 
-# Start all playback
-for device, filename in zip(devices, sound_files):
-    print(f"Playing {filename} on {device}")
-    p = play_sound(device, filename)
-    processes.append(p)
-    time.sleep(0.8)
+def main(delay: float = 1.0) -> None:
+    processes: list[tuple[str, str, Popen]] = []
+    for idx, (device, filename) in enumerate(zip(DEVICES, SOUND_FILES), start=1):
+        cmd = build_command(device, filename)
+        print(f"[{idx}/{len(DEVICES)}] Playing {filename} on {device}")
+        print("Running:", " ".join(cmd))
+        processes.append((device, filename, Popen(cmd)))
+        sleep(delay)
 
-# Wait until all are finished
-for p in processes:
-    p.wait()
+    for device, filename, process in processes:
+        return_code = process.wait()
+        if return_code:
+            print(f"Playback on {device} for {filename} exited with {return_code}.")
 
-print("All playback finished.")
+    print("All playback finished.")
+
+
+if __name__ == "__main__":
+    main()
