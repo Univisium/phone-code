@@ -37,6 +37,7 @@ echo
 
 echo "starting multi_play"
 python3 multi_play.py
+python3 button_test.py
 
 echo
 read -p "Press Enter to close..."
