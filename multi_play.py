@@ -1,6 +1,6 @@
 import wave
 from pathlib import Path
-from subprocess import Popen
+from subprocess import Popen, PIPE
 from time import sleep
 
 SOUND_DIR = Path("/home/nachtdienst/sound/fixed3")
@@ -18,17 +18,43 @@ RESET = "\033[0m"
 PERIOD_SIZE = None
 BUFFER_SIZE = None
 
+
 def debug_print(msg: str) -> None:
     if DEBUG:
         print(msg)
+
+
+def summarize_alsa_error(stderr: str) -> str:
+    """Return a short human readable summary of ALSA errors."""
+    if not stderr:
+        return "Unknown error"
+
+    lines = stderr.strip().splitlines()
+
+    for line in lines:
+        if "Unable to install hw params" in line:
+            return "ALSA rejected audio settings"
+        if "No such file or directory" in line:
+            return "Device not found"
+        if "Device or resource busy" in line.lower():
+            return "Device is busy"
+        if "broken pipe" in line.lower():
+            return "Device disconnected"
+        if "invalid argument" in line.lower():
+            return "Unsupported audio format"
+
+    return lines[0] if lines else "Unknown ALSA error"
+
 
 def format_from_sample_width(sw: int) -> str:
     mapping = {1: "U8", 2: "S16_LE", 3: "S24_LE", 4: "S32_LE"}
     return mapping.get(sw) or (_ for _ in ()).throw(ValueError(f"{RED}Unsupported sample width {sw}{RESET}"))
 
+
 def wav_params(path: Path):
     with wave.open(str(path), "rb") as f:
         return f.getnchannels(), f.getframerate(), format_from_sample_width(f.getsampwidth())
+
 
 def build_command(device: str, filename: str, include_tuning=True):
     channels, sample_rate, format_name = wav_params(SOUND_DIR / filename)
@@ -48,26 +74,26 @@ def build_command(device: str, filename: str, include_tuning=True):
         cmd.append(f"--buffer-size={BUFFER_SIZE}")
 
     cmd.append(str(SOUND_DIR / filename))
-
     return cmd
+
 
 def main(delay: float = 0.5):
     debug_print(f"{BLUE}Starting parallel multi playback{RESET}\n")
 
     processes = []
 
-    # Start all processes immediately (parallel playback)
+    # Start all processes in parallel
     for idx, (device, filename) in enumerate(zip(DEVICES, SOUND_FILES), start=1):
 
-        debug_print(f"{YELLOW}[{idx}/{5}] Preparing {filename} for {device}{RESET}")
+        debug_print(f"{YELLOW}[{idx}/5] Preparing {filename} for {device}{RESET}")
 
         cmd = build_command(device, filename, include_tuning=True)
         debug_print(f"{BLUE}Running:{RESET} {' '.join(cmd)}")
 
-        from subprocess import DEVNULL
-        proc = Popen(cmd, stdout=DEVNULL, stderr=DEVNULL)
+        # Capture stderr for summarizing errors later
+        proc = Popen(cmd, stdout=PIPE, stderr=PIPE, text=True)
 
-        # NEW immediate result check
+        # Check if it starts normally
         sleep(0.2)
         initial_state = proc.poll()
 
@@ -81,14 +107,13 @@ def main(delay: float = 0.5):
                 "device": device,
                 "filename": filename,
                 "process": proc,
-                "tuning_used": PERIOD_SIZE is not None or BUFFER_SIZE is not None,
             }
         )
 
         sleep(delay)
         debug_print("")
 
-    # Now wait for all and count results
+    # Final wait + result summary
     debug_print(f"\n{BLUE}Waiting for all playback to finish...{RESET}\n")
 
     success_count = 0
@@ -98,18 +123,20 @@ def main(delay: float = 0.5):
         device = info["device"]
         filename = info["filename"]
         proc = info["process"]
-        tuning_used = info["tuning_used"]
 
         return_code = proc.wait()
+        stderr_output = proc.stderr.read() if proc.stderr else ""
 
         if return_code == 0:
             success_count += 1
             debug_print(f"{GREEN}OK on {device} for {filename}{RESET}")
         else:
             fail_count += 1
-            debug_print(f"{RED}FAILED on {device} for {filename} code {return_code}{RESET}")
+            summary = summarize_alsa_error(stderr_output)
+            print(f"{RED}FAILED on {device} for {filename}{RESET} ({summary})")
 
     print(f"\n{GREEN}{success_count} played successfully{RESET}, {RED}{fail_count} failed{RESET}")
+
 
 if __name__ == "__main__":
     main()
