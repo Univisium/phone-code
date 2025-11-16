@@ -15,21 +15,22 @@ BUFFER_SIZE = 4096
 
 def build_command(device: str, filename: str) -> list[str]:
     return [
-           "aplay",
-          "-D",
-          device,
-          "-f",
-          FORMAT,
-          "-r",
-          str(SAMPLE_RATE),
-          "-c",
-          str(CHANNELS),
-          "--disable-resample",
-          "--disable-format",
-          f"--period-size={PERIOD_SIZE}",
-          f"--buffer-size={BUFFER_SIZE}",
-          str(SOUND_DIR / filename),
-           ]
+        "aplay",
+        "-D",
+        device,
+        "-f",
+        FORMAT,
+        "-r",
+        str(SAMPLE_RATE),
+        "-c",
+        str(CHANNELS),
+        "--disable-resample",
+        "--disable-format",
+        f"--period-size={PERIOD_SIZE}",
+        f"--buffer-size={BUFFER_SIZE}",
+        str(SOUND_DIR / filename),
+    ]
+
 
 def main(delay: float = 1.0) -> None:
     processes: list[tuple[str, str, Popen]] = []
@@ -46,6 +47,7 @@ def main(delay: float = 1.0) -> None:
             print(f"Playback on {device} for {filename} exited with {return_code}.")
 
     print("All playback finished.")
+
 
 if __name__ == "__main__":
     main()

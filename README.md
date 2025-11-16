@@ -26,4 +26,4 @@ git push                        # upload naar GitHub
 
 ## testing
 
-Run `python -m py_compile multi_play.py` to have Python compile the file and surface any syntax errors without executing the script.
+Run `python -m py_compile multi_play.py` to have Python compile the file and surface any syntax errors without executing the script. If the command succeeds there will be no output and you return to the shell prompt; any syntax mistake will be printed as an error so you can fix it and re-run the command.
