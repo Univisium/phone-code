@@ -80,9 +80,11 @@ def main(delay: float = 1.0) -> None:
             for x in ("--period-size", "--buffer-size")
         )
 
-        proc = Popen(cmd)
+        from subprocess import DEVNULL
+        proc = Popen(cmd, stdout=DEVNULL, stderr=DEVNULL)
 
-        return_code = proc.wait()  # wait ONLY HERE
+        return_code = proc.wait()
+
 
         processes.append(
             {
