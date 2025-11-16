@@ -1,4 +1,6 @@
 import wave
+import argparse
+
 from pathlib import Path
 from subprocess import Popen, PIPE
 from time import sleep
@@ -34,13 +36,13 @@ def summarize_alsa_error(stderr: str) -> str:
         if "Unable to install hw params" in line:
             return "Unable to install hw params | device said NOPE"
         if "No such file or directory" in line:
-            return "Device not found"
+            return "Device not found | Where is soundcard?"
         if "busy" in line.lower():
-            return "Device is busy"
+            return "Device is busy | soundcard already taking a shit"
         if "broken pipe" in line.lower():
-            return "Device disconnected"
+            return "Device disconnected | plug it back in UwU"
         if "invalid argument" in line.lower():
-            return "Unsupported audio format"
+            return "invalid argument | You asked ALSA to do something that literally makes no sense"
 
     return lines[0] if lines else "Unknown ALSA error"
 
@@ -73,6 +75,23 @@ def build_command(device: str, filename: str, include_tuning=True):
 
     cmd.append(str(SOUND_DIR / filename))
     return cmd
+
+def play_single_sound(device: str, sound_path: str):
+    channels, sample_rate, fmt = wav_params(Path(sound_path))
+
+    cmd = [
+        "aplay",
+        "-D", device,
+        "-f", fmt,
+        "-r", str(sample_rate),
+        "-c", str(channels),
+        sound_path
+    ]
+
+    print(f"{GREEN}Playing single sound on {device}{RESET}")
+    print(" ".join(cmd))
+
+    Popen(cmd)
 
 
 def main(delay: float = 0.5):
@@ -136,4 +155,18 @@ def main(delay: float = 0.5):
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--button", action="store_true", help="Trigger single sound through button")
+    parser.add_argument("--device", type=str, help="ALSA device")
+    parser.add_argument("--sound", type=str, help="Sound file path")
+    args = parser.parse_args()
+
+    # Button mode: plays one sound and exits
+    if args.button:
+        play_single_sound(
+            args.device or "plughw:4,0",
+            args.sound or "/home/nachtdienst/sound/Button.wav"
+        )
+    else:
+        # Normal multi-playback mode
+        main()
