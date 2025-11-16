@@ -1,6 +1,6 @@
 import wave
 from pathlib import Path
-from subprocess import Popen
+from subprocess import Popen, DEVNULL, TimeoutExpired
 from time import sleep
 
 SOUND_DIR = Path("/home/nachtdienst/sound/fixed3")
@@ -8,7 +8,6 @@ SOUND_FILES = ["1.wav", "2.wav", "3.wav", "4.wav", "5.wav"]
 DEVICES = ["plughw:2,0", "plughw:3,0", "plughw:4,0", "plughw:5,0", "plughw:6,0"]
 
 # Debug toggle
-
 DEBUG = True
 
 # ANSI colors
@@ -22,9 +21,11 @@ RESET = "\033[0m"
 PERIOD_SIZE: int | None = None
 BUFFER_SIZE: int | None = None
 
+
 def debug_print(message: str) -> None:
     if DEBUG:
         print(message)
+
 
 def format_from_sample_width(sample_width: int) -> str:
     mapping = {1: "U8", 2: "S16_LE", 3: "S24_LE", 4: "S32_LE"}
@@ -33,12 +34,14 @@ def format_from_sample_width(sample_width: int) -> str:
     except KeyError as exc:
         raise ValueError(f"{RED}Unsupported sample width: {sample_width}{RESET}") from exc
 
+
 def wav_params(path: Path) -> tuple[int, int, str]:
     with wave.open(str(path), "rb") as wav_file:
         channels = wav_file.getnchannels()
         sample_rate = wav_file.getframerate()
         format_name = format_from_sample_width(wav_file.getsampwidth())
     return channels, sample_rate, format_name
+
 
 def build_command(device: str, filename: str, *, include_tuning: bool = True) -> list[str]:
     channels, sample_rate, format_name = wav_params(SOUND_DIR / filename)
@@ -59,7 +62,8 @@ def build_command(device: str, filename: str, *, include_tuning: bool = True) ->
     cmd.append(str(SOUND_DIR / filename))
     return cmd
 
-def main(delay: float = 1.0) -> None:
+
+def main(delay: float = 1.0, timeout: float = 10.0) -> None:
     processes: list[dict[str, object]] = []
 
     debug_print(f"{BLUE}Starting multi playback with debug enabled{RESET}\n")
@@ -67,6 +71,7 @@ def main(delay: float = 1.0) -> None:
     success_count = 0
     fail_count = 0
 
+    # first loop, start and wait with timeout
     for idx, (device, filename) in enumerate(zip(DEVICES, SOUND_FILES), start=1):
 
         debug_print(f"{YELLOW}[{idx}/{len(DEVICES)}] Preparing {filename} for {device}{RESET}")
@@ -80,11 +85,14 @@ def main(delay: float = 1.0) -> None:
             for x in ("--period-size", "--buffer-size")
         )
 
-        from subprocess import DEVNULL
         proc = Popen(cmd, stdout=DEVNULL, stderr=DEVNULL)
 
-        return_code = proc.wait()
-
+        try:
+            return_code = proc.wait(timeout=timeout)
+        except TimeoutExpired:
+            proc.kill()
+            return_code = -1
+            debug_print(f"{RED}Playback on {device} for {filename} timed out after {timeout} seconds{RESET}")
 
         processes.append(
             {
@@ -107,6 +115,7 @@ def main(delay: float = 1.0) -> None:
 
     debug_print(f"{BLUE}Waiting for all playback to finish...{RESET}\n")
 
+    # second loop, no waiting, only retry logic and reporting
     for proc_info in processes:
         device = proc_info["device"]
         filename = proc_info["filename"]
@@ -120,7 +129,7 @@ def main(delay: float = 1.0) -> None:
             fallback_cmd = build_command(device, filename, include_tuning=False)
             debug_print(f"{BLUE}Retry running:{RESET} {' '.join(fallback_cmd)}")
 
-            retry_code = Popen(fallback_cmd).wait()
+            retry_code = Popen(fallback_cmd, stdout=DEVNULL, stderr=DEVNULL).wait()
             if retry_code:
                 debug_print(f"{RED}Fallback playback on {device} for {filename} exited with {retry_code}{RESET}")
             else:
@@ -130,6 +139,9 @@ def main(delay: float = 1.0) -> None:
             debug_print(f"{RED}Playback on {device} for {filename} exited with code {return_code}{RESET}")
         else:
             debug_print(f"{GREEN}Playback OK on {device} for {filename}{RESET}")
+
+    print(f"{GREEN}{success_count} played successfully{RESET}, {RED}{fail_count} failed{RESET}")
+
 
 if __name__ == "__main__":
     main()
