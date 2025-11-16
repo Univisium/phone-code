@@ -25,7 +25,6 @@ def debug_print(msg: str) -> None:
 
 
 def summarize_alsa_error(stderr: str) -> str:
-    """Return a short human readable summary of ALSA errors."""
     if not stderr:
         return "Unknown error"
 
@@ -36,7 +35,7 @@ def summarize_alsa_error(stderr: str) -> str:
             return "ALSA rejected audio settings"
         if "No such file or directory" in line:
             return "Device not found"
-        if "Device or resource busy" in line.lower():
+        if "busy" in line.lower():
             return "Device is busy"
         if "broken pipe" in line.lower():
             return "Device disconnected"
@@ -69,7 +68,6 @@ def build_command(device: str, filename: str, include_tuning=True):
 
     if include_tuning and PERIOD_SIZE is not None:
         cmd.append(f"--period-size={PERIOD_SIZE}")
-
     if include_tuning and BUFFER_SIZE is not None:
         cmd.append(f"--buffer-size={BUFFER_SIZE}")
 
@@ -81,8 +79,10 @@ def main(delay: float = 0.5):
     debug_print(f"{BLUE}Starting parallel multi playback{RESET}\n")
 
     processes = []
+    success_count = 0
+    fail_count = 0
 
-    # Start all processes in parallel
+    # Start all processes immediately (parallel playback)
     for idx, (device, filename) in enumerate(zip(DEVICES, SOUND_FILES), start=1):
 
         debug_print(f"{YELLOW}[{idx}/5] Preparing {filename} for {device}{RESET}")
@@ -90,17 +90,20 @@ def main(delay: float = 0.5):
         cmd = build_command(device, filename, include_tuning=True)
         debug_print(f"{BLUE}Running:{RESET} {' '.join(cmd)}")
 
-        # Capture stderr for summarizing errors later
         proc = Popen(cmd, stdout=PIPE, stderr=PIPE, text=True)
 
-        # Check if it starts normally
+        # Check if it started playing
         sleep(0.2)
         initial_state = proc.poll()
 
         if initial_state is None:
             print(f"{GREEN}[{idx}/5] {filename} started playing on {device}{RESET}")
         else:
-            print(f"{RED}[{idx}/5] {filename} failed to start on {device}{RESET}")
+            # Read stderr NOW so we can summarize immediately
+            stderr_now = proc.stderr.read() if proc.stderr else ""
+            error_summary = summarize_alsa_error(stderr_now)
+            print(f"{RED}[{idx}/5] {filename} failed on {device}{RESET} ({error_summary})")
+            fail_count += 1
 
         processes.append(
             {
@@ -113,11 +116,8 @@ def main(delay: float = 0.5):
         sleep(delay)
         debug_print("")
 
-    # Final wait + result summary
+    # Now wait for all and count remaining results
     debug_print(f"\n{BLUE}Waiting for all playback to finish...{RESET}\n")
-
-    success_count = 0
-    fail_count = 0
 
     for info in processes:
         device = info["device"]
@@ -125,15 +125,12 @@ def main(delay: float = 0.5):
         proc = info["process"]
 
         return_code = proc.wait()
-        stderr_output = proc.stderr.read() if proc.stderr else ""
 
         if return_code == 0:
             success_count += 1
-            debug_print(f"{GREEN}OK on {device} for {filename}{RESET}")
         else:
-            fail_count += 1
-            summary = summarize_alsa_error(stderr_output)
-            print(f"{RED}FAILED on {device} for {filename}{RESET} ({summary})")
+            # Already printed reason earlier – no need to show again
+            pass
 
     print(f"\n{GREEN}{success_count} played successfully{RESET}, {RED}{fail_count} failed{RESET}")
 
