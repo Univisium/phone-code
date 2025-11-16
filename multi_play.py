@@ -117,6 +117,9 @@ def main(delay: float = 1.0) -> None:
         process: Popen = proc_info["process"]
         tuning_used = proc_info["tuning_used"]
 
+        # wait for THIS process now
+        return_code = process.wait()
+
         if return_code and tuning_used:
             debug_print(f"{RED}Playback on {device} for {filename} failed with {return_code}{RESET}")
             debug_print(f"{YELLOW}Retrying without period or buffer tuning{RESET}")
@@ -138,9 +141,6 @@ def main(delay: float = 1.0) -> None:
             debug_print(f"{RED}Playback on {device} for {filename} exited with code {return_code}{RESET}")
         else:
             debug_print(f"{GREEN}Playback OK on {device} for {filename}{RESET}")
-
-    debug_print(f"\n{GREEN}All playback attempts finished.{RESET}")
-
 
 if __name__ == "__main__":
     main()
