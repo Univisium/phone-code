@@ -95,6 +95,9 @@ def main(delay: float = 1.0) -> None:
 
     debug_print(f"{BLUE}Waiting for all playback to finish...{RESET}\n")
 
+    success_count = 0
+    fail_count = 0
+
     for proc_info in processes:
         device = proc_info["device"]
         filename = proc_info["filename"]
@@ -102,6 +105,11 @@ def main(delay: float = 1.0) -> None:
         tuning_used = proc_info["tuning_used"]
 
         return_code = process.wait()
+
+        if return_code == 0:
+            success_count += 1
+        else:
+            fail_count += 1
 
         if return_code and tuning_used:
             debug_print(f"{RED}Playback on {device} for {filename} failed with {return_code}{RESET}")
@@ -125,6 +133,7 @@ def main(delay: float = 1.0) -> None:
         else:
             debug_print(f"{GREEN}Playback OK on {device} for {filename}{RESET}")
 
+    print(f"{GREEN}{success_count} played successfully{RESET}, {RED}{fail_count} failed{RESET}")
     debug_print(f"\n{GREEN}All playback attempts finished.{RESET}")
 
 
