@@ -59,21 +59,34 @@ def main(delay: float = 0.5):
     # Start all processes immediately (parallel playback)
     for idx, (device, filename) in enumerate(zip(DEVICES, SOUND_FILES), start=1):
 
-        debug_print(f"{YELLOW}[{idx}/{len(DEVICES)}] Starting {filename} on {device}{RESET}")
+        debug_print(f"{YELLOW}[{idx}/{5}] Preparing {filename} for {device}{RESET}")
 
         cmd = build_command(device, filename, include_tuning=True)
         debug_print(f"{BLUE}Running:{RESET} {' '.join(cmd)}")
 
-        proc = Popen(cmd)
+        from subprocess import DEVNULL
+        proc = Popen(cmd, stdout=DEVNULL, stderr=DEVNULL)
 
-        processes.append({
-            "device": device,
-            "filename": filename,
-            "process": proc,
-            "tuning_used": PERIOD_SIZE is not None or BUFFER_SIZE is not None,
-        })
+        # NEW immediate result check
+        sleep(0.2)
+        initial_state = proc.poll()
+
+        if initial_state is None:
+            print(f"{GREEN}[{idx}/5] {filename} started playing on {device}{RESET}")
+        else:
+            print(f"{RED}[{idx}/5] {filename} failed to start on {device}{RESET}")
+
+        processes.append(
+            {
+                "device": device,
+                "filename": filename,
+                "process": proc,
+                "tuning_used": PERIOD_SIZE is not None or BUFFER_SIZE is not None,
+            }
+        )
 
         sleep(delay)
+        debug_print("")
 
     # Now wait for all and count results
     debug_print(f"\n{BLUE}Waiting for all playback to finish...{RESET}\n")
