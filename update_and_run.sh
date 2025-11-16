@@ -30,14 +30,18 @@ cd /home/nachtdienst/phone-code || {
 }
 
 git pull
-echo "finished pulling script UwU"
-echo
-echo
-echo
 
-echo "starting multi_play"
-python3 multi_play.py
-python3 button_test.py
+echo "Starting multi_play"
+python3 multi_play.py &
+PID1=$!
+
+echo "Starting button_test"
+python3 button_test.py &
+PID2=$!
+
+# keep the script running until both die
+wait $PID1
+wait $PID2
 
 echo
 read -p "Press Enter to close..."
