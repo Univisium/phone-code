@@ -7,6 +7,27 @@ SOUND_DIR = Path("/home/nachtdienst/sound/fixed3")
 SOUND_FILES = ["1.wav", "2.wav", "3.wav", "4.wav", "5.wav"]
 DEVICES = ["plughw:2,0", "plughw:3,0", "plughw:4,0", "plughw:5,0", "plughw:6,0"]
 
+def rainbow_boot_message():
+    colors = [
+        "\033[31m",   # red
+        "\033[33m",   # yellow
+        "\033[32m",   # green
+        "\033[36m",   # cyan
+        "\033[34m",   # blue
+        "\033[35m",   # magenta
+        "\033[95m",   # light magenta
+        "\033[94m",   # light blue
+    ]
+    text = " multi play system starting "
+    rainbow = ""
+
+    for i, char in enumerate(text):
+        rainbow += colors[i % len(colors)] + char
+
+    rainbow += "\033[0m"
+    print(rainbow)
+    print()
+
 # ANSI colors
 RED = "\033[31m"
 GREEN = "\033[32m"
