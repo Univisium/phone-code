@@ -99,7 +99,7 @@ def play_single_sound(device: str, sound_path: str):
 
 
 
-def main(delay: float = 0.1):
+def main(delay: float = 0.5):
     debug_print(f"{BLUE}Starting parallel multi playback{RESET}\n")
 
     processes = []
