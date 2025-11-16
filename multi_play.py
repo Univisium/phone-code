@@ -7,6 +7,10 @@ SOUND_DIR = Path("/home/nachtdienst/sound/fixed3")
 SOUND_FILES = ["1.wav", "2.wav", "3.wav", "4.wav", "5.wav"]
 DEVICES = ["plughw:2,0", "plughw:3,0", "plughw:4,0", "plughw:5,0", "plughw:6,0"]
 
+# Debug toggle
+
+DEBUG = True
+
 # ANSI colors
 RED = "\033[31m"
 GREEN = "\033[32m"
@@ -18,6 +22,9 @@ RESET = "\033[0m"
 PERIOD_SIZE: int | None = None
 BUFFER_SIZE: int | None = None
 
+def debug_print(message: str) -> None:
+    if DEBUG:
+        print(message)
 
 def format_from_sample_width(sample_width: int) -> str:
     mapping = {1: "U8", 2: "S16_LE", 3: "S24_LE", 4: "S32_LE"}
@@ -58,14 +65,14 @@ def build_command(device: str, filename: str, *, include_tuning: bool = True) ->
 def main(delay: float = 1.0) -> None:
     processes: list[dict[str, object]] = []
 
-    print(f"{BLUE}Starting multi playback with debug enabled{RESET}\n")
+    debug_print(f"{BLUE}Starting multi playback with debug enabled{RESET}\n")
 
     for idx, (device, filename) in enumerate(zip(DEVICES, SOUND_FILES), start=1):
 
-        print(f"{YELLOW}[{idx}/{len(DEVICES)}] Preparing {filename} for {device}{RESET}")
+        debug_print(f"{YELLOW}[{idx}/{len(DEVICES)}] Preparing {filename} for {device}{RESET}")
         
         cmd = build_command(device, filename, include_tuning=True)
-        print(f"{BLUE}Running:{RESET} {' '.join(cmd)}")
+        debug_print(f"{BLUE}Running:{RESET} {' '.join(cmd)}")
         
         tuning_used = any(
             part.startswith(unsupported)
@@ -84,41 +91,41 @@ def main(delay: float = 1.0) -> None:
         )
 
         sleep(delay)
-        print()
+        debug_print("")
 
-    print(f"{BLUE}Waiting for all playback to finish...{RESET}\n")
+    debug_print(f"{BLUE}Waiting for all playback to finish...{RESET}\n")
 
     for proc_info in processes:
         device = proc_info["device"]
         filename = proc_info["filename"]
-        process: Popen = proc_info["process"]  # type: ignore
+        process: Popen = proc_info["process"]
         tuning_used = proc_info["tuning_used"]
 
         return_code = process.wait()
 
         if return_code and tuning_used:
-            print(f"{RED}Playback on {device} for {filename} failed with {return_code}{RESET}")
-            print(f"{YELLOW}Retrying without period or buffer tuning{RESET}")
+            debug_print(f"{RED}Playback on {device} for {filename} failed with {return_code}{RESET}")
+            debug_print(f"{YELLOW}Retrying without period or buffer tuning{RESET}")
             
             fallback_cmd = build_command(device, filename, include_tuning=False)
-            print(f"{BLUE}Retry running:{RESET} {' '.join(fallback_cmd)}")
+            debug_print(f"{BLUE}Retry running:{RESET} {' '.join(fallback_cmd)}")
 
             retry_code = Popen(fallback_cmd).wait()
             if retry_code:
-                print(
+                debug_print(
                     f"{RED}Fallback playback on {device} for {filename} exited with {retry_code}{RESET}"
                 )
             else:
-                print(
+                debug_print(
                     f"{GREEN}Fallback playback on {device} for {filename} succeeded{RESET}"
                 )
 
         elif return_code:
-            print(f"{RED}Playback on {device} for {filename} exited with code {return_code}{RESET}")
+            debug_print(f"{RED}Playback on {device} for {filename} exited with code {return_code}{RESET}")
         else:
-            print(f"{GREEN}Playback OK on {device} for {filename}{RESET}")
+            debug_print(f"{GREEN}Playback OK on {device} for {filename}{RESET}")
 
-    print(f"\n{GREEN}All playback attempts finished.{RESET}")
+    debug_print(f"\n{GREEN}All playback attempts finished.{RESET}")
 
 
 if __name__ == "__main__":
